@@ -64,7 +64,7 @@ PAST_CHATS_FILE = 'data/past_chats_list'
 MODEL_ROLE = 'ai'
 AI_AVATAR_ICON = '✨'
 USER_AVATAR_ICON = '👤'
-MODEL_NAME = "gpt-3.5-turbo"
+MODEL_NAME = os.environ.get("OLLAMA_MODEL", "gpt-3.5-turbo") if os.environ.get("DEFAULT_API_PROVIDER") == "ollama" else "gpt-3.5-turbo"
 
 # Short ID generation function
 def generate_short_id(length: int = 8) -> str:
@@ -82,6 +82,9 @@ def load_config() -> Dict[str, str | None]:
     load_dotenv(ENV_FILE)
     return {
         'OPENAI_API_KEY': os.environ.get('OPENAI_API_KEY'),
+        'DEFAULT_API_PROVIDER': os.environ.get('DEFAULT_API_PROVIDER'),
+        'OLLAMA_MODEL': os.environ.get('OLLAMA_MODEL'),
+        'OLLAMA_BASE_URL': os.environ.get('OLLAMA_BASE_URL'),
     }
 
 # Data management

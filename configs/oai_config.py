@@ -1,10 +1,15 @@
 import os
 import warnings
+from dotenv import load_dotenv
+
+# Load env immediately to ensure module-level configs like service_config have access to env vars
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 # Default provider priority order
 DEFAULT_PROVIDER_PRIORITY = [
     'openai',
     'claude', 
+    'ollama',
     'deepseek',
     'basic',
     'azure_openai'
@@ -24,6 +29,14 @@ def get_api_config():
                 "model": os.environ.get("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
                 "api_key": os.environ.get("ANTHROPIC_API_KEY"),
                 "base_url": os.environ.get("ANTHROPIC_BASE_URL")
+            }]
+        },
+        'ollama': {
+            "config_list": [{
+                "model": os.environ.get("OLLAMA_MODEL", "llama3"),
+                "api_key": "ollama", 
+                "base_url": os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+                "api_type": "openai",
             }]
         },
         'deepseek': {
@@ -66,9 +79,9 @@ def get_api_config():
     }
 
 service_config = {
-    "summary": get_api_config()["basic"],
-    "deepsearch": get_api_config()["basic"],
-    "code_explore": get_api_config()["basic"],
+    "summary": get_api_config()[os.environ.get('DEFAULT_API_PROVIDER', 'basic')],
+    "deepsearch": get_api_config()[os.environ.get('DEFAULT_API_PROVIDER', 'basic')],
+    "code_explore": get_api_config()[os.environ.get('DEFAULT_API_PROVIDER', 'basic')],
 }
 
 
