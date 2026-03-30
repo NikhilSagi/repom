@@ -304,7 +304,30 @@ If no relevant solutions are found, please indicate that.
         
         # Extract final result
         messages = chat_result.chat_history
-        final_answer = chat_result.summary.strip().lstrip()
+        
+        def clean_text(text):
+            if not text: return ""
+            return text.replace("TERMINATE", "").replace("<TERMINATE>", "").strip()
+
+        summary_text = chat_result.summary
+        if isinstance(summary_text, dict):
+            summary_text = summary_text.get('content', "")
+            
+        final_answer = clean_text(summary_text.strip().lstrip() if summary_text else "")
+        
+        if not final_answer and messages:
+            for msg in reversed(messages):
+                content = clean_text(msg.get("content", ""))
+                name = msg.get("name", "")
+                if content and name != "Coder_Excuter":
+                    final_answer = content
+                    break
+            
+            if not final_answer:
+                final_answer = clean_text(messages[-1].get("content", ""))
+
+        if not final_answer:
+            final_answer = "Task Completed."
 
         task_trace_dir = f"res/trace/code_analysis_{self.task_id}"
         # if not os.path.exists(task_trace_dir):

@@ -393,24 +393,36 @@ Please provide comprehensive help including code examples, explanations, and pra
 
     def _extract_final_answer(self, chat_result) -> str:
         """Extract final answer from chat history"""
-        # Extract final result
+        def clean_text(text):
+            if not text:
+                return ""
+            return text.replace("TERMINATE", "").replace("<TERMINATE>", "").strip()
+
         final_answer = chat_result.summary
         
         if isinstance(final_answer, dict):
-            final_answer = final_answer['content']
+            final_answer = final_answer.get('content', "")
         
         if final_answer is None:
             final_answer = ""
-        final_answer = final_answer.strip().lstrip()
+        final_answer = clean_text(final_answer.strip().lstrip())
         
         messages = chat_result.chat_history
-        final_content = messages[-1].get("content", "")
-        if final_content:
-            final_content = final_content.strip().lstrip()
         
-        if final_answer == "":
-            final_answer = final_content
-        
+        if not final_answer and messages:
+            for msg in reversed(messages):
+                content = clean_text(msg.get("content", ""))
+                name = msg.get("name", "")
+                if content and name != "user_proxy":
+                    final_answer = content
+                    break
+            
+            if not final_answer:
+                final_answer = clean_text(messages[-1].get("content", ""))
+
+        if not final_answer:
+            final_answer = "Task Completed."
+            
         return final_answer
 
 def load_env():

@@ -61,8 +61,8 @@ class AgentCaller:
     
     def postprocess_message(self, ai_response):
         # Add AI response to chat history
-        if ai_response == "":
-            ai_response = "TERMINATE"
+        if not ai_response:
+            ai_response = "Finished processing the request."
         # st.session_state.messages.append({"role": "assistant", "content": ai_response})        
         return ai_response
     

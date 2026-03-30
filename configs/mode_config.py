@@ -49,11 +49,9 @@ class RunConfig:
 class FrontendConfig(RunConfig):
     """Frontend mode configuration"""
     mode: str = "frontend"
-    streamlit_port: int = 8501
-    streamlit_host: str = "localhost"
-    file_watcher_type: str = "none"
-    enable_auth: bool = True
-    enable_file_browser: bool = True
+    server_port: int = 8000
+    server_host: str = "0.0.0.0"
+    build_react: bool = False
     max_upload_size: int = 200  # MB
 
 @dataclass
@@ -179,7 +177,7 @@ class ModeConfigManager:
         
         # Frontend-specific parameters
         frontend_params = base_params + [
-            'streamlit_port', 'streamlit_host', 'max_upload_size'
+            'server_port', 'server_host', 'build_react', 'max_upload_size'
         ]
         
         # Backend-specific parameters  
@@ -259,16 +257,22 @@ def create_argument_parser() -> argparse.ArgumentParser:
     
     # Frontend mode specific parameters
     parser.add_argument(
-        '--streamlit-port', '-p',
+        '--server-port', '-p',
         type=int,
-        default=8501,
-        help='Streamlit port (default: 8501)'
+        default=8000,
+        help='FastAPI server port (default: 8000)'
     )
     
     parser.add_argument(
-        '--streamlit-host',
-        default='localhost',
-        help='Streamlit host address (default: localhost)'
+        '--server-host',
+        default='0.0.0.0',
+        help='FastAPI server host address (default: 0.0.0.0)'
+    )
+    
+    parser.add_argument(
+        '--build-react',
+        action='store_true',
+        help='Build the React app before starting the server'
     )
     
     parser.add_argument(

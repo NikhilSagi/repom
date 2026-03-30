@@ -113,25 +113,39 @@ def setup_environment():
     return True
 
 def run_frontend_mode(config_manager: ModeConfigManager):
-    """Run frontend mode"""
+    """Run frontend mode (FastAPI + React)"""
     config = config_manager.config
     
+    if hasattr(config, "build_react") and config.build_react:
+        print("\n🔨 Building React app...")
+        react_dir = Path(__file__).parent / "src" / "frontend" / "react_app"
+        try:
+            # Install dependencies if node_modules doesn't exist
+            if not (react_dir / "node_modules").exists():
+                print("📦 Installing npm dependencies...")
+                subprocess.run("npm install", cwd=str(react_dir), shell=True, check=True)
+            
+            subprocess.run("npm run build", cwd=str(react_dir), shell=True, check=True)
+            print("✅ React build complete!")
+        except Exception as e:
+            print(f"❌ React build failed: {e}")
+            print("⚠️ Falling back to API only mode or existing build.")
+    
     cmd = [
-        sys.executable, "-m", "streamlit", "run",
-        "src/frontend/app_autogen_enhanced.py",
-        "--server.port", str(config.streamlit_port),
-        "--server.address", config.streamlit_host,
-        "--server.fileWatcherType", config.file_watcher_type,
-        "--server.maxUploadSize", str(config.max_upload_size)
+        sys.executable, "-m", "uvicorn", 
+        "src.api.server:app",
+        "--host", config.server_host,
+        "--port", str(config.server_port)
     ]
     
-    print(f"\n🌐 Access URL: http://{config.streamlit_host}:{config.streamlit_port}")
+    print(f"\n🌐 Access URL (if React app built): http://{config.server_host}:{config.server_port}")
+    print(f"🌐 API Base URL: http://{config.server_host}:{config.server_port}/api")
     print(f"⚡ Execute command: {' '.join(cmd)}")
     
     try:
         subprocess.run(cmd, check=True)
     except KeyboardInterrupt:
-        print("\n👋 Frontend service stopped")
+        print("\n👋 Frontend server stopped")
     except subprocess.CalledProcessError as e:
         print(f"❌ Frontend startup failed: {e}")
         sys.exit(1)
